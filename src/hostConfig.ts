@@ -8,8 +8,15 @@ export class hostConfig {
   static knownHostsPath = homedir() + "/.ssh/known_hosts";
   static cbConfigPath = homedir() + "/copy.bara.sky";
 
-  static githubKnownHost =
-    "github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==";
+  static async getGithubKnownHost(): Promise<string> {
+    try {
+      const { stdout } = await execAsync("ssh-keyscan github.com");
+      return stdout.trim();
+    } catch (error) {
+      console.error("Error fetching GitHub known host:", error);
+      throw error;
+    }
+  }
 
   static async saveCommitter(committer: string): Promise<void> {
     const match = committer.match(/^(.+)\s?<([^>]+)>/i);
