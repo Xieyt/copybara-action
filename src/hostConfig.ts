@@ -1,5 +1,9 @@
 import { ensureFile, writeFile } from "fs-extra";
 import { homedir } from "os";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 
 export class hostConfig {
   static gitConfigPath = homedir() + "/.gitconfig";
@@ -19,7 +23,7 @@ export class hostConfig {
   }
 
   static async saveCommitter(committer: string): Promise<void> {
-    const match = committer.match(/^(.+)\s?<([^>]+)>/i);
+    const match = committer.match(/^(.+)\s?<(>+)>/i);
     const committerName = match && match[1] ? match[1].trim() : "Github Actions";
     const committerEmail = match && match[2] ? match[2].trim() : "actions@github.com";
 
@@ -42,7 +46,8 @@ export class hostConfig {
   }
 
   static async saveKnownHosts(knownHosts: string): Promise<void> {
-    return this.save(this.knownHostsPath, `${this.githubKnownHost}\n${knownHosts}`);
+    const githubKnownHost = await this.getGithubKnownHost();
+    return this.save(this.knownHostsPath, `${githubKnownHost}\n${knownHosts}`);
   }
 
   static async saveCopybaraConfig(config: string): Promise<void> {
