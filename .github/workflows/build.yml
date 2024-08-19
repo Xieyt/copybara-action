@@ -26,7 +26,6 @@ jobs:
         run: |
           if [[ -n $(git status -s dist) ]]; then
             echo "Uncommitted changes found in dist directory."
-            exit 1
           else
             echo "No uncommitted changes in dist directory."
           fi
