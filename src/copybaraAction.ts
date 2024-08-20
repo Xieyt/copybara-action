@@ -118,6 +118,7 @@ export class CopybaraAction {
       this.config.workflow = (await this.isInitWorkflow()) ? "init" : "push";
 
     core.debug(`Workflow is ${this.config.workflow}`);
+    console.log(`Workflow is ${this.config.workflow}`);
 
     return this.config.workflow;
   }
