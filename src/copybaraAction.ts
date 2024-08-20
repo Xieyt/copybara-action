@@ -82,6 +82,10 @@ export class CopybaraAction {
         exit(51, 'You need to set values for "sot_repo" & "destination_repo" or set a value for "workflow".');
 
       if (this.getCurrentRepo().toLowerCase() === this.config.sot.repo.toLowerCase()) {
+        console.log(`current: ${this.getCurrentRepo().toLowerCase()}`)
+        console.log(`sot: ${this.config.sot.repo.toLowerCase()}`)
+
+      // if (this.getCurrentRepo().toLowerCase() === this.config.sot.repo.toLowerCase()) {
         if (context.eventName != "push") exit(54, "Nothing to do in the SoT repo except for push events.");
 
         const sotBranch = await this.getSotBranch();
@@ -91,15 +95,16 @@ export class CopybaraAction {
 
         this.config.workflow = "push";
 
-      // Detect if init is needed when push is specified
-      if (
-        this.config.workflow == "push" &&
-          this.getCurrentRepo().toLowerCase() === this.config.sot.repo.toLowerCase() &&
-          this.getCurrentBranch().toLowerCase() == (await this.getSotBranch()).toLowerCase()
-      )
-      core.debug('Check if init or push');
+        // Detect if init is needed when push is specified
+        if (
+          this.config.workflow == "push" &&
+            this.getCurrentRepo().toLowerCase() === this.config.sot.repo.toLowerCase() &&
+            this.getCurrentBranch().toLowerCase() == (await this.getSotBranch()).toLowerCase()
+        ){
+          core.debug('Check if init or push');
 
-      this.config.workflow = (await this.isInitWorkflow()) ? "init" : "push";
+          this.config.workflow = (await this.isInitWorkflow()) ? "init" : "push";
+        }
 
       } else if (this.getCurrentRepo().toLowerCase() === this.config.destination.repo.toLowerCase()) {
 
