@@ -1,31 +1,34 @@
 import { copyBaraSky } from "./copy.bara.sky";
+import * as core from "@actions/core";
 import { exec } from "@actions/exec";
 import { exitCodes } from "./exit";
 import { hostConfig } from "./hostConfig";
+import { homedir } from "os";
 
 export class CopyBara {
   constructor(readonly image: DockerConfig) {}
 
   public async download(): Promise<number> {
-    return exec("docker", ["pull", `${this.image.name}:${this.image.tag}`]);
+    return 0;
+    // return exec("docker", ["pull", `${this.image.name}:${this.image.tag}`]);
   }
 
   public async run(workflow: string, copybaraOptions: string[], ref: string | number = ""): Promise<number> {
     switch (workflow) {
       case "init":
         return this.exec(
-          ["-e", "COPYBARA_WORKFLOW=push"],
+          {COPYBARA_WORKFLOW: 'push'},
           ["--force", "--init-history", "--ignore-noop", ...copybaraOptions]
         );
 
       case "pr":
         return this.exec(
-          ["-e", "COPYBARA_WORKFLOW=pr", "-e", `COPYBARA_SOURCEREF=${ref}`],
+          {COPYBARA_WORKFLOW:'pr', COPYBARA_SOURCEREF: `${ref}` },
           ["--ignore-noop", ...copybaraOptions]
         );
 
       default:
-        return this.exec(["-e", `COPYBARA_WORKFLOW=${workflow}`], ["--ignore-noop", ...copybaraOptions]);
+        return this.exec({COPYBARA_WORKFLOW:`${workflow}`}, ["--ignore-noop", ...copybaraOptions]);
     }
   }
 
@@ -37,7 +40,8 @@ export class CopyBara {
       `git@github.com:${config.destination.repo}.git`,
       config.destination.branch,
       config.committer,
-      "file:///usr/src/app",
+      "",
+      // "file:///usr/src/app",
       this.generateInExcludes(config.push.include),
       this.generateInExcludes(config.push.exclude),
       this.generateTransformations(config.push.move, config.push.replace, "push"),
@@ -47,37 +51,67 @@ export class CopyBara {
     );
   }
 
-  private async exec(dockerParams: string[] = [], copybaraOptions: string[] = []): Promise<number> {
-    const cbOptions = !copybaraOptions.length ? [] : [`-e`, `COPYBARA_OPTIONS`];
+  private async exec(additionalEnv: { [key: string]: string } = {}, copybaraOptions: string[] = []): Promise<number> {
+    var cbOptions = !copybaraOptions.length ? [] : {COPYBARA_OPTIONS: ''};
 
-    const execExitCode = await exec(
-      `docker`,
-      [
-        "run",
-        `-v`,
-        `${process.cwd()}:/usr/src/app`,
-        `-v`,
-        `${hostConfig.sshKeyPath}:/root/.ssh/id_rsa`,
-        `-v`,
-        `${hostConfig.knownHostsPath}:/root/.ssh/known_hosts`,
-        `-v`,
-        `${hostConfig.cbConfigPath}:/root/copy.bara.sky`,
-        `-v`,
-        `${hostConfig.gitConfigPath}:/root/.gitconfig`,
-        `-v`,
-        `${hostConfig.gitCredentialsPath}:/root/.git-credentials`,
-        `-e`,
-        `COPYBARA_CONFIG=/root/copy.bara.sky`,
-        ...dockerParams,
-        ...cbOptions,
-        this.image.name,
-        "copybara",
-      ],
-      {
-        ignoreReturnCode: true,
-        env: { COPYBARA_OPTIONS: copybaraOptions.join(" ") },
-      }
-    );
+
+  // core.debug(hostConfig.cbConfigPath)
+  // core.debug(`Options:`)
+  // core.debug(dockerParams)
+
+  const execExitCode = await exec(
+    `copybara`,
+    [
+      // `--verbose`,
+      // `migrate`,
+      // `${hostConfig.cbConfigPath}`,
+      // ...cbOptions,
+      // ...dockerParams,
+    ],
+    {
+      ignoreReturnCode: true,
+      env: {
+        HOME: homedir(),
+        COPYBARA_CONFIG: hostConfig.cbConfigPath,
+        // COPYBARA_DEBUG: 'true',
+        // COPYBARA_SUBCOMMAND: 'migrate',
+        // COPYBARA_WORKFLOW: 'push',
+        COPYBARA_OPTIONS: copybaraOptions.join(" "),
+        GIT_SSH_COMMAND: `ssh -i ${hostConfig.sshKeyPath} -o UserKnownHostsFile=${hostConfig.knownHostsPath}`,
+        // GIT_CONFIG: `${hostConfig.gitConfigPath}`,
+        //GIT_CREDENTIALS: `${hostConfig.gitCredentialsPath}`,
+        ...additionalEnv,
+      },
+    }
+  );
+    // const execExitCode = await exec(
+    //   `docker`,
+    //   [
+    //     "run",
+    //     `-v`,
+    //     `${process.cwd()}:/usr/src/app`,
+    //     `-v`,
+    //     `${hostConfig.sshKeyPath}:/root/.ssh/id_rsa`,
+    //     `-v`,
+    //     `${hostConfig.knownHostsPath}:/root/.ssh/known_hosts`,
+    //     `-v`,
+    //     `${hostConfig.cbConfigPath}:/root/copy.bara.sky`,
+    //     `-v`,
+    //     `${hostConfig.gitConfigPath}:/root/.gitconfig`,
+    //     `-v`,
+    //     `${hostConfig.gitCredentialsPath}:/root/.git-credentials`,
+    //     `-e`,
+    //     `COPYBARA_CONFIG=/root/copy.bara.sky`,
+    //     ...dockerParams,
+    //     ...cbOptions,
+    //     this.image.name,
+    //     "copybara",
+    //   ],
+    //   {
+    //     ignoreReturnCode: true,
+    //     env: { COPYBARA_OPTIONS: copybaraOptions.join(" ") },
+    //   }
+    // );
 
     const exitCode = exitCodes[execExitCode];
 

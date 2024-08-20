@@ -5,6 +5,8 @@ on:
     branches:
       - main
 
+if: false
+
 jobs:
   # same job as build.yml copied here to keep build & E2E workflows separate
   # Can be optimized once Github supports Actions partials

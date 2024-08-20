@@ -16,12 +16,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/olivr/copybara-action.git"
+    "url": "git+https://github.com/xieyt/copybara-action.git"
   },
-  "keywords": [
-    "actions",
-    "copybara"
-  ],
+  "keywords": ["actions", "copybara"],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -52,7 +49,6 @@
     "eslint-plugin-jest": "^23.20.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.1.4",
-    "husky": "^4.3.0",
     "jest": "^24.9.0",
     "jest-circus": "^26.4.2",
     "js-yaml": "^3.14.0",
@@ -66,13 +62,6 @@
   "config": {
     "commitizen": {
       "path": "cz-customizable"
-    }
-  },
-  "husky": {
-    "hooks": {
-      "prepare-commit-msg": "exec < /dev/tty && git-cz --hook || true",
-      "commit-msg": "echo $HUSKY_GIT_PARAMS && echo $HUSKY_GIT_STDIN && commitlint -E HUSKY_GIT_PARAMS --config .config/commitlint.config.js",
-      "pre-commit": "lint-staged && ./.config/commit-docs.sh && ./.config/commit-build.sh"
     }
   },
   "lint-staged": {

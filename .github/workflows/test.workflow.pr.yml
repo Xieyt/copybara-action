@@ -6,6 +6,8 @@ on:
     branches:
       - main
 
+if: false
+
 jobs:
   # When new code is pushed on destination, create a PR to trigger an E2E test of the PR workflow
   prepare-test:

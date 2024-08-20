@@ -4,9 +4,11 @@ on:
   schedule:
     - cron: "0 0 * * 0" # Weekly
 
+if: false
+
 jobs:
   publish-copybara:
-    if: github.repository == 'Olivr/copybara-action'
+    if: github.repository == 'xieyt/copybara-action-3'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -14,7 +16,7 @@ jobs:
       id-token: write
     name: Publish to Docker Hub
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           repository: google/copybara
           fetch-depth: 1
@@ -27,8 +29,8 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            olivr/copybara
-            ghcr.io/olivr/copybara
+            xieyt/copybara
+            ghcr.io/xieyt/copybara
           tags: |
             type=raw,${{ env.COPYBARA_SHA }}
             type=schedule,pattern={{date 'YYYYMMDD'}}
@@ -55,10 +57,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      # Remove when https://github.com/google/copybara/pull/186 is merged
-      - name: Use working Dockerfile
-        run: curl -s https://raw.githubusercontent.com/Olivr/copybara-action/main/.github/Dockerfile > Dockerfile
-
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
@@ -68,11 +66,11 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      # Experimental
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@main
-      - name: Sign the image with GitHub OIDC **EXPERIMENTAL**
-        run: cosign sign --oidc-issuer https://token.actions.githubusercontent.com ${TAGS}
-        env:
-          COSIGN_EXPERIMENTAL: 1
-          TAGS: ${{ steps.meta.outputs.tags }}
+      # # Experimental
+      # - name: Install Cosign
+      #   uses: sigstore/cosign-installer@main
+      # - name: Sign the image with GitHub OIDC **EXPERIMENTAL**
+      #   run: cosign sign --oidc-issuer https://token.actions.githubusercontent.com ${TAGS}
+      #   env:
+      #     COSIGN_EXPERIMENTAL: 1
+      #     TAGS: ${{ steps.meta.outputs.tags }}

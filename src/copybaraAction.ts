@@ -71,43 +71,70 @@ export class CopybaraAction {
   }
 
   async getWorkflow() {
-    if (!this.config.workflow) {
+
+    core.debug('wow')
+    core.debug(this.config.workflow.length.toString())
+    core.debug(String(this.config.workflow.length.toString().includes('0')))
+    core.debug('gg')
+    console.log(this.config.workflow.length)
+    console.log(this.config.workflow)
+
+    if (!this.config.workflow || this.config.workflow.length === 0) {
+
       core.debug("Detect workflow");
+
       if (!this.config.sot.repo || !this.config.destination.repo)
         exit(51, 'You need to set values for "sot_repo" & "destination_repo" or set a value for "workflow".');
 
-      if (this.getCurrentRepo() === this.config.sot.repo) {
+      core.debug(this.getCurrentRepo())
+      core.debug(this.config.sot.repo)
+
+      if (this.getCurrentRepo().toLowerCase() === this.config.sot.repo.toLowerCase()) {
         if (context.eventName != "push") exit(54, "Nothing to do in the SoT repo except for push events.");
 
         const sotBranch = await this.getSotBranch();
-        if (this.getCurrentBranch() != sotBranch)
+        if (this.getCurrentBranch().toLowerCase() != sotBranch.toLowerCase())
           exit(54, `Nothing to do in the SoT repo except on the "${sotBranch}" branch.`);
 
         this.config.workflow = "push";
-      } else if (this.getCurrentRepo() === this.config.destination.repo) {
+
+      } else if (this.getCurrentRepo().toLowerCase() === this.config.destination.repo.toLowerCase()) {
+
         if (!this.getPRNumber()) exit(54, "Nothing to do in the destination repo except for Pull Requests.");
 
         const destinationBranch = await this.getDestinationBranch();
-        if (this.getCurrentBranch() != destinationBranch)
+        if (this.getCurrentBranch().toLowerCase() != destinationBranch.toLowerCase() )
           exit(54, `Nothing to do in the destination repo except for Pull Requests on '${destinationBranch}'.`);
 
         this.config.workflow = "pr";
+
       } else
         exit(
-          51,
+          69,
           'The current repo is neither the SoT nor destination repo. You need to set a value for "workflow" or run this action in the SoT or destination repo.'
         );
     }
 
+    console.log('here')
+    core.debug(this.getCurrentRepo().toLowerCase())
+    core.debug(this.getCurrentBranch().toLowerCase())
+
+    core.debug('repo')
+    core.debug(this.config.sot.repo.toLowerCase())
+    core.debug((await this.getSotBranch()).toLowerCase())
+
+
     // Detect if init is needed when push is specified
     if (
       this.config.workflow == "push" &&
-      this.getCurrentRepo() === this.config.sot.repo &&
-      this.getCurrentBranch() == (await this.getSotBranch())
+        this.getCurrentRepo().toLowerCase() === this.config.sot.repo.toLowerCase() &&
+        this.getCurrentBranch().toLowerCase() == (await this.getSotBranch()).toLowerCase()
     )
+      core.debug('Check if init or push')
       this.config.workflow = (await this.isInitWorkflow()) ? "init" : "push";
 
     core.debug(`Workflow is ${this.config.workflow}`);
+
     return this.config.workflow;
   }
 
@@ -146,10 +173,10 @@ export class CopybaraAction {
     await hostConfig.saveCopybaraConfig(await this.getCopybaraConfig());
 
     // Upload Copybara config as an artifact
-    if (core.isDebug()) {
-      const artifactClient = artifact.create();
-      artifactClient.uploadArtifact("copy.bara.sky", [hostConfig.cbConfigPath], homedir());
-    }
+    // if (core.isDebug()) {
+      // const artifactClient = artifact.create();
+      // artifactClient.uploadArtifact("copy.bara.sky", [hostConfig.cbConfigPath], homedir());
+    // }
   }
 
   async run() {

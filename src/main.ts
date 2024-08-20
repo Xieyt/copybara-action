@@ -2,50 +2,71 @@ import * as core from "@actions/core";
 import { CopybaraAction } from "./copybaraAction";
 import { exit } from "./exit";
 
+// Helper function to get input from core.getInput or process.env
+function getInput(name: string, options?: core.InputOptions): any {
+  // Check environment variable first (both lowercase and uppercase)
+  const envValue = process.env[name] || process.env[name.toUpperCase()];
+  console.log(`env -> ${name}:${envValue}`);
+
+  if (envValue !== undefined) {
+    return envValue;
+  }
+
+  // Fallback to core.getInput
+  try {
+    return core.getInput(name, options);
+  } catch (error) {
+    if (options?.required) {
+      throw new Error(`Input required and not supplied: ${name}`);
+    }
+    return undefined;
+  }
+}
+
 const action = new CopybaraAction({
   // Credentials
-  sshKey: core.getInput("ssh_key", { required: true }),
-  accessToken: core.getInput("access_token"),
+  sshKey: getInput("ssh_key", { required: true }),
+  accessToken: getInput("access_token"),
 
   // Common config
   sot: {
-    repo: core.getInput("sot_repo"),
-    branch: core.getInput("sot_branch"),
+    repo: getInput("sot_repo"),
+    branch: getInput("sot_branch"),
   },
   destination: {
-    repo: core.getInput("destination_repo"),
-    branch: core.getInput("destination_branch"),
+    repo: getInput("destination_repo"),
+    branch: getInput("destination_branch"),
   },
-  committer: core.getInput("committer"),
+  committer: getInput("committer"),
 
   // Push config
   push: {
-    include: core.getInput("push_include").split(" "),
-    exclude: core.getInput("push_exclude").split(" "),
-    move: core.getInput("push_move").split(/\r?\n/),
-    replace: core.getInput("push_replace").split(/\r?\n/),
+    include: getInput("push_include").split(" "),
+    exclude: getInput("push_exclude").split(" "),
+    move: getInput("push_move").split(/\r?\n/),
+    replace: getInput("push_replace").split(/\r?\n/),
   },
 
   // PR config
   pr: {
-    include: core.getInput("pr_include").split(" "),
-    exclude: core.getInput("pr_exclude").split(" "),
-    move: core.getInput("pr_move").split(/\r?\n/),
-    replace: core.getInput("pr_replace").split(/\r?\n/),
+    include: getInput("pr_include").split(" "),
+    exclude: getInput("pr_exclude").split(" "),
+    move: getInput("pr_move").split(/\r?\n/),
+    replace: getInput("pr_replace").split(/\r?\n/),
   },
 
   // Advanced config
-  customConfig: core.getInput("custom_config"),
-  workflow: core.getInput("workflow"),
-  copybaraOptions: core.getInput("copybara_options").split(" "),
-  knownHosts: core.getInput("ssh_known_hosts"),
-  prNumber: core.getInput("pr_number"),
-  createRepo: core.getInput("create_repo") == "yes" ? true : false,
+  customConfig: getInput("custom_config"),
+  workflow: getInput("workflow"),
+  copybaraOptions: getInput("copybara_options").split(" "),
+  knownHosts: getInput("ssh_known_hosts"),
+  prNumber: getInput("pr_number"),
+  createRepo: getInput("create_repo") == "yes" ? true : false,
 
   // Docker
   image: {
-    name: core.getInput("copybara_image"),
-    tag: core.getInput("copybara_image_tag"),
+    name: getInput("copybara_image"),
+    tag: getInput("copybara_image_tag"),
   },
 });
 

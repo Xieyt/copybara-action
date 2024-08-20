@@ -1,5 +1,11 @@
 import { ensureFile, writeFile } from "fs-extra";
+import * as core from "@actions/core";
 import { homedir } from "os";
+import { exec } from "child_process";
+import { promisify } from "util";
+import { chmod } from "fs/promises";
+
+const execAsync = promisify(exec);
 
 export class hostConfig {
   static gitConfigPath = homedir() + "/.gitconfig";
@@ -8,15 +14,25 @@ export class hostConfig {
   static knownHostsPath = homedir() + "/.ssh/known_hosts";
   static cbConfigPath = homedir() + "/copy.bara.sky";
 
-  static githubKnownHost =
-    "github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==";
+  static async getGithubKnownHost(): Promise<string> {
+    try {
+      const { stdout } = await execAsync("ssh-keyscan github.com");
+      return stdout;
+      //return stdout.trim();
+    } catch (error) {
+      console.error("Error fetching GitHub known host:", error);
+      throw error;
+    }
+  }
 
   static async saveCommitter(committer: string): Promise<void> {
-    const match = committer.match(/^(.+)\s?<([^>]+)>/i);
+    const match = committer.match(/^(.+?)\s*<(.+)>$/i);
     const committerName = match && match[1] ? match[1].trim() : "Github Actions";
     const committerEmail = match && match[2] ? match[2].trim() : "actions@github.com";
 
-    return this.save(
+    core.debug(committerEmail);
+
+    await this.save(
       this.gitConfigPath,
       `
       [user]
@@ -27,23 +43,41 @@ export class hostConfig {
   }
 
   static async saveAccessToken(accessToken: string): Promise<void> {
-    return this.save(this.gitCredentialsPath, `https://user:${accessToken}@github.com`);
+    await this.save(this.gitCredentialsPath, `https://user:${accessToken}@github.com`);
   }
 
+  // TODO: Fix This
+  // The error is issue with libcrypto and for now I have used another job to fix it in workflow
   static async saveSshKey(sshKey: string): Promise<void> {
-    return this.save(this.sshKeyPath, sshKey);
+    // var sshKeys = sshKey.split(" ");
+    // var ssh = [sshKeys.slice(0, 4).join(" "), ...sshKeys.slice(4, -4), sshKeys.slice(-4).join(" ")];
+    // var sshK = ssh.join("\n") + "\n";
+    // console.log(sshK);
+    await this.save(this.sshKeyPath, sshKey);
+    // console.log(sshKeys[4:].join("\n"));
+    await chmod(this.sshKeyPath, 0o600); // Change file permissions to 0600
   }
 
   static async saveKnownHosts(knownHosts: string): Promise<void> {
-    return this.save(this.knownHostsPath, `${this.githubKnownHost}\n${knownHosts}`);
+    const githubKnownHost = await this.getGithubKnownHost();
+    await this.save(this.knownHostsPath, `${githubKnownHost}`);
   }
 
   static async saveCopybaraConfig(config: string): Promise<void> {
-    return this.save(this.cbConfigPath, config);
+    await this.save(this.cbConfigPath, config);
   }
 
   static async save(file: string, content: string): Promise<void> {
+    core.debug(`Saving file: ${file}`);
+    //core.debug(`content: ${content}`);
+
     const filePath = file.replace("~", homedir());
-    return ensureFile(filePath).then(() => writeFile(filePath, content));
+    await ensureFile(filePath);
+    await writeFile(filePath, content);
   }
+
+  //static async save(file: string, content: string): Promise<void> {
+  // const filePath = file.replace("~", homedir());
+  // await ensureFile(filePath).then(() => writeFile(filePath, content));
+  // }
 }
