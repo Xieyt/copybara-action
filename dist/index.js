@@ -5805,16 +5805,9 @@ class hostConfig {
             yield this.save(this.gitCredentialsPath, `https://user:${accessToken}@github.com`);
         });
     }
-    // TODO: Fix This
-    // The error is issue with libcrypto and for now I have used another job to fix it in workflow
     static saveSshKey(sshKey) {
         return __awaiter(this, void 0, void 0, function* () {
-            // var sshKeys = sshKey.split(" ");
-            // var ssh = [sshKeys.slice(0, 4).join(" "), ...sshKeys.slice(4, -4), sshKeys.slice(-4).join(" ")];
-            // var sshK = ssh.join("\n") + "\n";
-            // console.log(sshK);
             yield this.save(this.sshKeyPath, sshKey);
-            // console.log(sshKeys[4:].join("\n"));
             yield promises_1.chmod(this.sshKeyPath, 0o600); // Change file permissions to 0600
         });
     }
