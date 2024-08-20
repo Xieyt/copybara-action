@@ -97,8 +97,9 @@ export class CopybaraAction {
           this.getCurrentRepo().toLowerCase() === this.config.sot.repo.toLowerCase() &&
           this.getCurrentBranch().toLowerCase() == (await this.getSotBranch()).toLowerCase()
       )
-        core.debug('Check if init or push');
-        this.config.workflow = (await this.isInitWorkflow()) ? "init" : "push";
+      core.debug('Check if init or push');
+
+      this.config.workflow = (await this.isInitWorkflow()) ? "init" : "push";
 
       } else if (this.getCurrentRepo().toLowerCase() === this.config.destination.repo.toLowerCase()) {
 
