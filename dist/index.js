@@ -5792,7 +5792,7 @@ class hostConfig {
             const match = committer.match(/^(.+?)\s*<(.+)>$/i);
             const committerName = match && match[1] ? match[1].trim() : "Github Actions";
             const committerEmail = match && match[2] ? match[2].trim() : "actions@github.com";
-            core.debug(committerEmail);
+            //core.debug(committerEmail);
             yield this.save(this.gitConfigPath, `
       [user]
           name = ${committerName}
@@ -8430,18 +8430,10 @@ class CopybaraAction {
     }
     getWorkflow() {
         return __awaiter(this, void 0, void 0, function* () {
-            core.debug('wow');
-            core.debug(this.config.workflow.length.toString());
-            core.debug(String(this.config.workflow.length.toString().includes('0')));
-            core.debug('gg');
-            console.log(this.config.workflow.length);
-            console.log(this.config.workflow);
             if (!this.config.workflow || this.config.workflow.length === 0) {
                 core.debug("Detect workflow");
                 if (!this.config.sot.repo || !this.config.destination.repo)
                     exit_1.exit(51, 'You need to set values for "sot_repo" & "destination_repo" or set a value for "workflow".');
-                core.debug(this.getCurrentRepo());
-                core.debug(this.config.sot.repo);
                 if (this.getCurrentRepo().toLowerCase() === this.config.sot.repo.toLowerCase()) {
                     if (github_1.context.eventName != "push")
                         exit_1.exit(54, "Nothing to do in the SoT repo except for push events.");
@@ -8461,12 +8453,6 @@ class CopybaraAction {
                 else
                     exit_1.exit(69, 'The current repo is neither the SoT nor destination repo. You need to set a value for "workflow" or run this action in the SoT or destination repo.');
             }
-            console.log('here');
-            core.debug(this.getCurrentRepo().toLowerCase());
-            core.debug(this.getCurrentBranch().toLowerCase());
-            core.debug('repo');
-            core.debug(this.config.sot.repo.toLowerCase());
-            core.debug((yield this.getSotBranch()).toLowerCase());
             // Detect if init is needed when push is specified
             if (this.config.workflow == "push" &&
                 this.getCurrentRepo().toLowerCase() === this.config.sot.repo.toLowerCase() &&

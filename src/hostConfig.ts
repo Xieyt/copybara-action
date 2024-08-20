@@ -30,7 +30,7 @@ export class hostConfig {
     const committerName = match && match[1] ? match[1].trim() : "Github Actions";
     const committerEmail = match && match[2] ? match[2].trim() : "actions@github.com";
 
-    core.debug(committerEmail);
+    //core.debug(committerEmail);
 
     await this.save(
       this.gitConfigPath,
