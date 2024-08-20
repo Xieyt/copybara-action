@@ -7,7 +7,7 @@ build-sync:
 	. "/home/water/.nvm/nvm.sh" && node --version
 	if [[ ! -d 'node_modules' ]]; then npm install ; fi
 	npm run build
-	git add . && git commit -m "build - $(date '+%Y-%m-%d %H:%M:%S')"
+	git add ./dist/. && git commit -m "build - $(date '+%Y-%m-%d %H:%M:%S')"
 
 build-docker-image:
 	@echo "Building docker image $(IMAGE_NAME)"
