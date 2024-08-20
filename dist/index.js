@@ -8453,6 +8453,7 @@ class CopybaraAction {
                 core.debug('Check if init or push');
             this.config.workflow = (yield this.isInitWorkflow()) ? "init" : "push";
             core.debug(`Workflow is ${this.config.workflow}`);
+            console.log(`Workflow is ${this.config.workflow}`);
             return this.config.workflow;
         });
     }
