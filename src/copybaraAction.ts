@@ -67,6 +67,7 @@ export class CopybaraAction {
       this.config.prNumber = context.payload.pull_request.number;
 
     core.debug(`Current PR number is ${this.config.prNumber}`);
+
     return this.config.prNumber;
   }
 
@@ -84,16 +85,27 @@ export class CopybaraAction {
         if (context.eventName != "push") exit(54, "Nothing to do in the SoT repo except for push events.");
 
         const sotBranch = await this.getSotBranch();
+
         if (this.getCurrentBranch().toLowerCase() != sotBranch.toLowerCase())
           exit(54, `Nothing to do in the SoT repo except on the "${sotBranch}" branch.`);
 
         this.config.workflow = "push";
+
+      // Detect if init is needed when push is specified
+      if (
+        this.config.workflow == "push" &&
+          this.getCurrentRepo().toLowerCase() === this.config.sot.repo.toLowerCase() &&
+          this.getCurrentBranch().toLowerCase() == (await this.getSotBranch()).toLowerCase()
+      )
+        core.debug('Check if init or push');
+        this.config.workflow = (await this.isInitWorkflow()) ? "init" : "push";
 
       } else if (this.getCurrentRepo().toLowerCase() === this.config.destination.repo.toLowerCase()) {
 
         if (!this.getPRNumber()) exit(54, "Nothing to do in the destination repo except for Pull Requests.");
 
         const destinationBranch = await this.getDestinationBranch();
+
         if (this.getCurrentBranch().toLowerCase() != destinationBranch.toLowerCase() )
           exit(54, `Nothing to do in the destination repo except for Pull Requests on '${destinationBranch}'.`);
 
@@ -106,19 +118,7 @@ export class CopybaraAction {
         );
     }
 
-
-    // Detect if init is needed when push is specified
-    if (
-      this.config.workflow == "push" &&
-        this.getCurrentRepo().toLowerCase() === this.config.sot.repo.toLowerCase() &&
-        this.getCurrentBranch().toLowerCase() == (await this.getSotBranch()).toLowerCase()
-    )
-      core.debug('Check if init or push');
-
-      this.config.workflow = (await this.isInitWorkflow()) ? "init" : "push";
-
     core.debug(`Workflow is ${this.config.workflow}`);
-    console.log(`Workflow is ${this.config.workflow}`);
 
     return this.config.workflow;
   }
