@@ -45,8 +45,8 @@ core.workflow(
     authoring = authoring.pass_thru(default = COMMITTER),
     mode = "ITERATIVE",
     transformations = [
-        #metadata.restore_author("ORIGINAL_AUTHOR", search_all_changes = True),
-        #metadata.expose_label("COPYBARA_INTEGRATE_REVIEW"),
+        metadata.restore_author("ORIGINAL_AUTHOR", search_all_changes = True),
+        metadata.expose_label("COPYBARA_INTEGRATE_REVIEW"),
     ] + PUSH_TRANSFORMATIONS if PUSH_TRANSFORMATIONS else core.reverse(PR_TRANSFORMATIONS),
 )
 
@@ -68,8 +68,9 @@ core.workflow(
     mode = "CHANGE_REQUEST",
     set_rev_id = False,
     transformations = [
-        #metadata.save_author("ORIGINAL_AUTHOR"),
-        #metadata.expose_label("GITHUB_PR_NUMBER", new_name = "Closes", separator = DESTINATION_REPO.replace("git@github.com:", " ").replace(".git", "#")),
+        metadata.save_author("ORIGINAL_AUTHOR"),
+        metadata.expose_label("GITHUB_PR_NUMBER", new_name = "Closes", separator = DESTINATION_REPO.replace("git@github.com:", " ").replace(".git", "#")),
+        metadata.append_to_message("\n\nOriginal Author: ${ORIGINAL_AUTHOR}\nPull Request URL: ${PR_URL}")
     ] + PR_TRANSFORMATIONS,
 )
 `;
